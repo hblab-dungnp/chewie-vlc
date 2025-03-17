@@ -1,9 +1,9 @@
 import 'dart:io';
 
-import 'package:chewie/chewie.dart';
 import 'package:chewie_example/app/theme.dart';
+import 'package:chewie_vlc/chewie.dart';
 import 'package:flutter/material.dart';
-import 'package:video_player/video_player.dart';
+import 'package:flutter_vlc_player/flutter_vlc_player.dart';
 
 class ChewieDemo extends StatefulWidget {
   const ChewieDemo({super.key, this.title = 'Chewie Demo'});
@@ -18,8 +18,8 @@ class ChewieDemo extends StatefulWidget {
 
 class _ChewieDemoState extends State<ChewieDemo> {
   TargetPlatform? _platform;
-  late VideoPlayerController _videoPlayerController1;
-  late VideoPlayerController _videoPlayerController2;
+  late VlcPlayerController _videoPlayerController1;
+  late VlcPlayerController _videoPlayerController2;
   ChewieController? _chewieController;
   int? bufferDelay;
 
@@ -44,16 +44,17 @@ class _ChewieDemoState extends State<ChewieDemo> {
   ];
 
   Future<void> initializePlayer() async {
-    _videoPlayerController1 = VideoPlayerController.networkUrl(
-      Uri.parse(srcs[currPlayIndex]),
+    _videoPlayerController1 = VlcPlayerController.network(
+      srcs[currPlayIndex],
     );
-    _videoPlayerController2 = VideoPlayerController.networkUrl(
-      Uri.parse(srcs[currPlayIndex]),
+    _videoPlayerController2 = VlcPlayerController.network(
+      srcs[currPlayIndex],
     );
-    await Future.wait([
-      _videoPlayerController1.initialize(),
-      _videoPlayerController2.initialize(),
-    ]);
+
+    // await Future.wait([
+    //   _videoPlayerController1.initialize(),
+    //   _videoPlayerController2.initialize(),
+    // ]);
     _createChewieController();
     setState(() {});
   }
@@ -178,9 +179,7 @@ class _ChewieDemoState extends State<ChewieDemo> {
           children: <Widget>[
             Expanded(
               child: Center(
-                child: _chewieController != null &&
-                        _chewieController!
-                            .videoPlayerController.value.isInitialized
+                child: _chewieController != null
                     ? Chewie(controller: _chewieController!)
                     : const Column(
                         mainAxisAlignment: MainAxisAlignment.center,

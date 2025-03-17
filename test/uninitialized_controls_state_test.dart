@@ -1,8 +1,8 @@
-import 'package:chewie/chewie.dart';
-import 'package:chewie/src/center_play_button.dart';
+import 'package:chewie_vlc/chewie.dart';
+import 'package:chewie_vlc/src/center_play_button.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:video_player/video_player.dart';
+import 'package:flutter_vlc_player/flutter_vlc_player.dart';
 
 List<String> srcs = [
   "https://assets.mixkit.co/videos/preview/mixkit-spinning-around-the-earth-29351-large.mp4",
@@ -13,8 +13,8 @@ List<String> srcs = [
 main() {
   testWidgets("MaterialControls state test", (WidgetTester tester) async {
     // Build our app and trigger a frame.
-    var videoPlayerController = VideoPlayerController.networkUrl(
-      Uri.parse(srcs[0]),
+    var videoPlayerController = VlcPlayerController.network(
+      srcs[0],
     );
     var materialControlsKey = GlobalKey();
     var chewieController = ChewieController(
@@ -46,8 +46,8 @@ main() {
 
   testWidgets("CupertinoControls state test", (WidgetTester tester) async {
     // Build our app and trigger a frame.
-    var videoPlayerController = VideoPlayerController.networkUrl(
-      Uri.parse(srcs[0]),
+    var videoPlayerController = VlcPlayerController.network(
+      srcs[0],
     );
     var materialControlsKey = GlobalKey();
     var chewieController = ChewieController(
@@ -82,8 +82,8 @@ main() {
   testWidgets("MaterialDesktopControls state test",
       (WidgetTester tester) async {
     // Build our app and trigger a frame.
-    var videoPlayerController = VideoPlayerController.networkUrl(
-      Uri.parse(srcs[0]),
+    var videoPlayerController = VlcPlayerController.network(
+      srcs[0],
     );
     var materialControlsKey = GlobalKey();
     var chewieController = ChewieController(

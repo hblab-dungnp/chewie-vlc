@@ -1,21 +1,20 @@
 import 'dart:async';
 import 'dart:math' as math;
-import 'dart:ui' as ui;
 
-import 'package:chewie/src/animated_play_pause.dart';
-import 'package:chewie/src/center_play_button.dart';
-import 'package:chewie/src/chewie_player.dart';
-import 'package:chewie/src/chewie_progress_colors.dart';
-import 'package:chewie/src/cupertino/cupertino_progress_bar.dart';
-import 'package:chewie/src/cupertino/widgets/cupertino_options_dialog.dart';
-import 'package:chewie/src/helpers/utils.dart';
-import 'package:chewie/src/models/option_item.dart';
-import 'package:chewie/src/models/subtitle_model.dart';
-import 'package:chewie/src/notifiers/index.dart';
+import 'package:chewie_vlc/src/animated_play_pause.dart';
+import 'package:chewie_vlc/src/center_play_button.dart';
+import 'package:chewie_vlc/src/chewie_player.dart';
+import 'package:chewie_vlc/src/chewie_progress_colors.dart';
+import 'package:chewie_vlc/src/cupertino/cupertino_progress_bar.dart';
+import 'package:chewie_vlc/src/cupertino/widgets/cupertino_options_dialog.dart';
+import 'package:chewie_vlc/src/helpers/utils.dart';
+import 'package:chewie_vlc/src/models/option_item.dart';
+import 'package:chewie_vlc/src/models/subtitle_model.dart';
+import 'package:chewie_vlc/src/notifiers/index.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_vlc_player/flutter_vlc_player.dart';
 import 'package:provider/provider.dart';
-import 'package:video_player/video_player.dart';
 
 class CupertinoControls extends StatefulWidget {
   const CupertinoControls({
@@ -38,8 +37,8 @@ class CupertinoControls extends StatefulWidget {
 class _CupertinoControlsState extends State<CupertinoControls>
     with SingleTickerProviderStateMixin {
   late PlayerNotifier notifier;
-  late VideoPlayerValue _latestValue;
-  double? _latestVolume;
+  late VlcPlayerValue _latestValue;
+  int? _latestVolume;
   Timer? _hideTimer;
   final marginSize = 5.0;
   Timer? _expandCollapseTimer;
@@ -50,7 +49,7 @@ class _CupertinoControlsState extends State<CupertinoControls>
   Timer? _bufferingDisplayTimer;
   bool _displayBufferingIndicator = false;
   double selectedSpeed = 1.0;
-  late VideoPlayerController controller;
+  late VlcPlayerController controller;
 
   // We know that _chewieController is set in didChangeDependencies
   ChewieController get chewieController => _chewieController!;
@@ -68,7 +67,7 @@ class _CupertinoControlsState extends State<CupertinoControls>
       return chewieController.errorBuilder != null
           ? chewieController.errorBuilder!(
               context,
-              chewieController.videoPlayerController.value.errorDescription!,
+              chewieController.videoPlayerController.value.errorDescription,
             )
           : const Center(
               child: Icon(
@@ -257,40 +256,34 @@ class _CupertinoControlsState extends State<CupertinoControls>
           margin: EdgeInsets.all(marginSize),
           child: ClipRRect(
             borderRadius: BorderRadius.circular(10.0),
-            child: BackdropFilter(
-              filter: ui.ImageFilter.blur(
-                sigmaX: 10.0,
-                sigmaY: 10.0,
-              ),
-              child: Container(
-                height: barHeight,
-                color: backgroundColor,
-                child: chewieController.isLive
-                    ? Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: <Widget>[
-                          _buildPlayPause(controller, iconColor, barHeight),
-                          _buildLive(iconColor),
-                        ],
-                      )
-                    : Row(
-                        children: <Widget>[
-                          _buildSkipBack(iconColor, barHeight),
-                          _buildPlayPause(controller, iconColor, barHeight),
-                          _buildSkipForward(iconColor, barHeight),
-                          _buildPosition(iconColor),
-                          _buildProgressBar(),
-                          _buildRemaining(iconColor),
-                          _buildSubtitleToggle(iconColor, barHeight),
-                          if (chewieController.allowPlaybackSpeedChanging)
-                            _buildSpeedButton(controller, iconColor, barHeight),
-                          if (chewieController.additionalOptions != null &&
-                              chewieController
-                                  .additionalOptions!(context).isNotEmpty)
-                            _buildOptionsButton(iconColor, barHeight),
-                        ],
-                      ),
-              ),
+            child: Container(
+              height: barHeight,
+              color: backgroundColor,
+              child: chewieController.isLive
+                  ? Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: <Widget>[
+                        _buildPlayPause(controller, iconColor, barHeight),
+                        _buildLive(iconColor),
+                      ],
+                    )
+                  : Row(
+                      children: <Widget>[
+                        _buildSkipBack(iconColor, barHeight),
+                        _buildPlayPause(controller, iconColor, barHeight),
+                        _buildSkipForward(iconColor, barHeight),
+                        _buildPosition(iconColor),
+                        _buildProgressBar(),
+                        _buildRemaining(iconColor),
+                        _buildSubtitleToggle(iconColor, barHeight),
+                        if (chewieController.allowPlaybackSpeedChanging)
+                          _buildSpeedButton(controller, iconColor, barHeight),
+                        if (chewieController.additionalOptions != null &&
+                            chewieController
+                                .additionalOptions!(context).isNotEmpty)
+                          _buildOptionsButton(iconColor, barHeight),
+                      ],
+                    ),
             ),
           ),
         ),
@@ -321,23 +314,20 @@ class _CupertinoControlsState extends State<CupertinoControls>
         duration: const Duration(milliseconds: 300),
         child: ClipRRect(
           borderRadius: BorderRadius.circular(10.0),
-          child: BackdropFilter(
-            filter: ui.ImageFilter.blur(sigmaX: 10.0),
-            child: Container(
-              height: barHeight,
-              padding: EdgeInsets.only(
-                left: buttonPadding,
-                right: buttonPadding,
-              ),
-              color: backgroundColor,
-              child: Center(
-                child: Icon(
-                  chewieController.isFullScreen
-                      ? CupertinoIcons.arrow_down_right_arrow_up_left
-                      : CupertinoIcons.arrow_up_left_arrow_down_right,
-                  color: iconColor,
-                  size: 16,
-                ),
+          child: Container(
+            height: barHeight,
+            padding: EdgeInsets.only(
+              left: buttonPadding,
+              right: buttonPadding,
+            ),
+            color: backgroundColor,
+            child: Center(
+              child: Icon(
+                chewieController.isFullScreen
+                    ? CupertinoIcons.arrow_down_right_arrow_up_left
+                    : CupertinoIcons.arrow_up_left_arrow_down_right,
+                color: iconColor,
+                size: 16,
               ),
             ),
           ),
@@ -347,8 +337,7 @@ class _CupertinoControlsState extends State<CupertinoControls>
   }
 
   Widget _buildHitArea() {
-    final bool isFinished = (_latestValue.position >= _latestValue.duration) &&
-        _latestValue.duration.inSeconds > 0;
+    final bool isFinished = controller.value.isEnded;
     final bool showPlayButton =
         widget.showPlayButton && !_latestValue.isPlaying && !_dragging;
 
@@ -374,7 +363,7 @@ class _CupertinoControlsState extends State<CupertinoControls>
   }
 
   GestureDetector _buildMuteButton(
-    VideoPlayerController controller,
+    VlcPlayerController controller,
     Color backgroundColor,
     Color iconColor,
     double barHeight,
@@ -385,10 +374,10 @@ class _CupertinoControlsState extends State<CupertinoControls>
         _cancelAndRestartTimer();
 
         if (_latestValue.volume == 0) {
-          controller.setVolume(_latestVolume ?? 0.5);
+          controller.setVolume(_latestVolume ?? 50);
         } else {
           _latestVolume = controller.value.volume;
-          controller.setVolume(0.0);
+          controller.setVolume(0);
         }
       },
       child: AnimatedOpacity(
@@ -396,21 +385,18 @@ class _CupertinoControlsState extends State<CupertinoControls>
         duration: const Duration(milliseconds: 300),
         child: ClipRRect(
           borderRadius: BorderRadius.circular(10.0),
-          child: BackdropFilter(
-            filter: ui.ImageFilter.blur(sigmaX: 10.0),
-            child: ColoredBox(
-              color: backgroundColor,
-              child: Container(
-                height: barHeight,
-                padding: EdgeInsets.only(
-                  left: buttonPadding,
-                  right: buttonPadding,
-                ),
-                child: Icon(
-                  _latestValue.volume > 0 ? Icons.volume_up : Icons.volume_off,
-                  color: iconColor,
-                  size: 16,
-                ),
+          child: ColoredBox(
+            color: backgroundColor,
+            child: Container(
+              height: barHeight,
+              padding: EdgeInsets.only(
+                left: buttonPadding,
+                right: buttonPadding,
+              ),
+              child: Icon(
+                _latestValue.volume > 0 ? Icons.volume_up : Icons.volume_off,
+                color: iconColor,
+                size: 16,
               ),
             ),
           ),
@@ -420,7 +406,7 @@ class _CupertinoControlsState extends State<CupertinoControls>
   }
 
   GestureDetector _buildPlayPause(
-    VideoPlayerController controller,
+    VlcPlayerController controller,
     Color iconColor,
     double barHeight,
   ) {
@@ -541,7 +527,7 @@ class _CupertinoControlsState extends State<CupertinoControls>
   }
 
   GestureDetector _buildSpeedButton(
-    VideoPlayerController controller,
+    VlcPlayerController controller,
     Color iconColor,
     double barHeight,
   ) {
@@ -730,9 +716,6 @@ class _CupertinoControlsState extends State<CupertinoControls>
   }
 
   void _playPause() {
-    final isFinished = _latestValue.position >= _latestValue.duration &&
-        _latestValue.duration.inSeconds > 0;
-
     setState(() {
       if (controller.value.isPlaying) {
         notifier.hideStuff = false;
@@ -746,8 +729,8 @@ class _CupertinoControlsState extends State<CupertinoControls>
             controller.play();
           });
         } else {
-          if (isFinished) {
-            controller.seekTo(Duration.zero);
+          if (controller.value.isEnded) {
+            controller.stop();
           }
           controller.play();
         }

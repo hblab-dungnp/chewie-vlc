@@ -1,9 +1,9 @@
-import 'package:chewie/src/chewie_player.dart';
-import 'package:chewie/src/helpers/adaptive_controls.dart';
-import 'package:chewie/src/notifiers/index.dart';
+import 'package:chewie_vlc/src/chewie_player.dart';
+import 'package:chewie_vlc/src/helpers/adaptive_controls.dart';
+import 'package:chewie_vlc/src/notifiers/index.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_vlc_player/flutter_vlc_player.dart';
 import 'package:provider/provider.dart';
-import 'package:video_player/video_player.dart';
 
 class PlayerWithControls extends StatelessWidget {
   const PlayerWithControls({super.key});
@@ -37,16 +37,18 @@ class PlayerWithControls extends StatelessWidget {
         children: <Widget>[
           if (chewieController.placeholder != null)
             chewieController.placeholder!,
-          InteractiveViewer(
-            transformationController: chewieController.transformationController,
-            maxScale: chewieController.maxScale,
-            panEnabled: chewieController.zoomAndPan,
-            scaleEnabled: chewieController.zoomAndPan,
-            child: Center(
-              child: AspectRatio(
+          Positioned.fill(
+            child: InteractiveViewer(
+              transformationController:
+                  chewieController.transformationController,
+              maxScale: chewieController.maxScale,
+              panEnabled: chewieController.zoomAndPan,
+              scaleEnabled: chewieController.zoomAndPan,
+              child: VlcPlayer(
+                controller: chewieController.videoPlayerController,
                 aspectRatio: chewieController.aspectRatio ??
                     chewieController.videoPlayerController.value.aspectRatio,
-                child: VideoPlayer(chewieController.videoPlayerController),
+                placeholder: const Center(child: CircularProgressIndicator()),
               ),
             ),
           ),

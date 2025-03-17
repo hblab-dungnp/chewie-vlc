@@ -1,16 +1,16 @@
 import 'dart:async';
 
-import 'package:chewie/src/chewie_progress_colors.dart';
-import 'package:chewie/src/models/option_item.dart';
-import 'package:chewie/src/models/options_translation.dart';
-import 'package:chewie/src/models/subtitle_model.dart';
-import 'package:chewie/src/notifiers/player_notifier.dart';
-import 'package:chewie/src/player_with_controls.dart';
+import 'package:chewie_vlc/src/chewie_progress_colors.dart';
+import 'package:chewie_vlc/src/models/option_item.dart';
+import 'package:chewie_vlc/src/models/options_translation.dart';
+import 'package:chewie_vlc/src/models/subtitle_model.dart';
+import 'package:chewie_vlc/src/notifiers/player_notifier.dart';
+import 'package:chewie_vlc/src/player_with_controls.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_vlc_player/flutter_vlc_player.dart';
 import 'package:provider/provider.dart';
-import 'package:video_player/video_player.dart';
 import 'package:wakelock_plus/wakelock_plus.dart';
 
 typedef ChewieRoutePageBuilder = Widget Function(
@@ -312,11 +312,11 @@ class ChewieController extends ChangeNotifier {
           playbackSpeeds.every((speed) => speed > 0),
           'The playbackSpeeds values must all be greater than 0',
         ) {
-    _initialize();
+    _onInitListener();
   }
 
   ChewieController copyWith({
-    VideoPlayerController? videoPlayerController,
+    VlcPlayerController? videoPlayerController,
     OptionsTranslation? optionsTranslation,
     double? aspectRatio,
     bool? autoInitialize,
@@ -464,7 +464,7 @@ class ChewieController extends ChangeNotifier {
   bool showSubtitles;
 
   /// The controller for the video you want to play
-  final VideoPlayerController videoPlayerController;
+  final VlcPlayerController videoPlayerController;
 
   /// Initialize the Video on Startup. This will prep the video for playback.
   final bool autoInitialize;
@@ -597,13 +597,15 @@ class ChewieController extends ChangeNotifier {
 
   bool get isPlaying => videoPlayerController.value.isPlaying;
 
+  Future<void> _onInitListener() async {
+    while (videoPlayerController.value.isInitialized == false) {
+      await Future<void>.delayed(Durations.extralong4);
+    }
+    _initialize();
+  }
+
   Future<dynamic> _initialize() async {
     await videoPlayerController.setLooping(looping);
-
-    if ((autoInitialize || autoPlay) &&
-        !videoPlayerController.value.isInitialized) {
-      await videoPlayerController.initialize();
-    }
 
     if (autoPlay) {
       if (fullScreenByDefault) {
@@ -665,7 +667,7 @@ class ChewieController extends ChangeNotifier {
     await videoPlayerController.seekTo(moment);
   }
 
-  Future<void> setVolume(double volume) async {
+  Future<void> setVolume(int volume) async {
     await videoPlayerController.setVolume(volume);
   }
 

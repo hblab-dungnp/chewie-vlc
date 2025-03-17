@@ -67,7 +67,7 @@ dependencies:
 ## 🕹️ Using it
 
 ```dart
-import 'package:chewie/chewie.dart';
+import 'package:chewie_vlc/chewie.dart';
 import 'package:video_player/video_player.dart';
 
 final videoPlayerController = VideoPlayerController.networkUrl(Uri.parse(
